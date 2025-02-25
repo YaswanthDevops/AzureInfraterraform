@@ -1,0 +1,7 @@
+resource_group_name    = "my-terraform-rg"
+location               = "West US"
+virtual_network_name   = "my-terraform-vnet"
+storage_account_name   = "yashstorage9876456"
+storage_container_name = "yashbackendcontainer7654"
+virtual_machine_name   = "rhel8"
+subnet_name            = "default"
