@@ -1,74 +1,68 @@
 resource "azurerm_resource_group" "TerraformRG" {
-  name     = var.resource_group_name
+  name     = "${var.prefix}-resources"
   location = var.location
 }
 
-resource "azurerm_virtual_network" "Terraform-Vnet" {
-  name                = var.virtual_network_name
+resource "azurerm_virtual_network" "azurevnet" {
+  name                = "${var.prefix}-network"
+  address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.TerraformRG.location
   resource_group_name = azurerm_resource_group.TerraformRG.name
-  address_space       = ["10.0.0.0/16"]
 }
 
-resource "azurerm_subnet" "mydefaultsubnet" {
-  name                 = var.subnet_name
+resource "azurerm_subnet" "azsubnet" {
+  name                 = "${var.prefix}-subnet"
   resource_group_name  = azurerm_resource_group.TerraformRG.name
-  virtual_network_name = azurerm_virtual_network.Terraform-Vnet.name
-  address_prefixes     = ["10.0.0.0/24"]
-}
-# Create Storage Account
-resource "azurerm_storage_account" "terraformsa" {
-  name                     = var.storage_account_name
-  resource_group_name      = azurerm_resource_group.TerraformRG.name
-  location                 = azurerm_resource_group.TerraformRG.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  virtual_network_name = azurerm_virtual_network.azurevnet.name
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
-# Create Storage Container for Terraform State
-resource "azurerm_storage_container" "terraform_container" {
-  name                  = var.storage_container_name
-  storage_account_name  = azurerm_storage_account.terraformsa.name
-  container_access_type = "private"
+resource "azurerm_network_interface" "azurenic" {
+  name                = "${var.prefix}-nic"
+  location            = azurerm_resource_group.TerraformRG.location
+  resource_group_name = azurerm_resource_group.TerraformRG.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.azsubnet.id
+    private_ip_address_allocation = "Dynamic"
+  }
 }
 
-resource "azurerm_virtual_machine" "my_vm" {
-  name                  = var.virtual_machine_name
+resource "azurerm_virtual_machine" "myvm" {
+  name                  = "${var.prefix}-linuxvm"
   location              = azurerm_resource_group.TerraformRG.location
   resource_group_name   = azurerm_resource_group.TerraformRG.name
-  network_interface_ids = ["/subscriptions/b3c9519c-431e-4755-a70a-e44b4a68c99c/resourceGroups/my-terraform-rg/providers/Microsoft.Network/networkInterfaces/rhel8696"]
-  vm_size               = "Standard_B1s"
+  network_interface_ids = [azurerm_network_interface.azurenic.id]
+  vm_size               = "Standard_DS1_v2"
 
-   storage_image_reference {
-    publisher = "RedHat"
-    offer     = "RHEL"
-    sku       = "8-lvm"
+  # Uncomment this line to delete the OS disk automatically when deleting the VM
+  delete_os_disk_on_termination = true
+
+  # Uncomment this line to delete the data disks automatically when deleting the VM
+  delete_data_disks_on_termination = true
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
-  } 
-
+  }
   storage_os_disk {
-    name              = "rhel8OsDisk"
+    name              = "myosdisk1"
     caching           = "ReadWrite"
     create_option     = "FromImage"
-    managed_disk_type = "Premium_LRS"
+    managed_disk_type = "Standard_LRS"
   }
-
   os_profile {
-    computer_name  = "rhel8"
-    admin_username = "yashuser"
-    admin_password = "Yash@12345678"
+    computer_name  = "ubuntuVM"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
   }
-
   os_profile_linux_config {
     disable_password_authentication = false
   }
-
-  additional_capabilities {  # Add this to match existing state
-  ultra_ssd_enabled = false
-  }
-
-  boot_diagnostics {          # Add this to match existing state
-  enabled = false
-  storage_uri  = azurerm_storage_account.terraformsa.primary_blob_endpoint
+  tags = {
+    environment = "staging"
   }
 }
