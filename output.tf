@@ -15,7 +15,7 @@ output "azurerm_subnet_name" {
 
 output "azurerm_network_interface" {
   description = "nic details"
-  value = azurerm_network_interface.azurenic.id
+  value       = azurerm_network_interface.azurenic.id
 }
 
 output "azurerm_virtual_machine_name" {
