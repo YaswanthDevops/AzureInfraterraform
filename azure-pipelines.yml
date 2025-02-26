@@ -25,10 +25,10 @@ steps:
   displayName: 'Terraform Init'
   inputs:
     azureSubscription: 'azureterraform'
-    scriptType: 'ps'
+    scriptType: 'bash'
     scriptLocation: 'inlineScript'
-    inlineScript: |
-      terraform init
+    inlineScript: 'terraform init'
+    useGlobalConfig: true
 
 - powershell: |
     terraform fmt -check -diff
