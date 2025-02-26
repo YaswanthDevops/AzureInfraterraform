@@ -2,7 +2,7 @@ trigger:
 - main
 
 pool:
-  name: 'Azuredevopspool'  # Ensure this is your self-hosted Windows agent pool
+  name: 'Azuredevopspool'  # Replace with the name of your self-hosted Windows agent pool
 
 steps:
 - powershell: |
@@ -19,11 +19,6 @@ steps:
     $env:PATH += ";C:\Terraform"
     terraform --version
   displayName: 'Verify Terraform Version'
-
-- task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
-  displayName: 'Terraform Installer'
-  inputs:
-    terraformVersion: '1.1.0'
 
 - task: AzureCLI@2
   displayName: 'Terraform Init'
