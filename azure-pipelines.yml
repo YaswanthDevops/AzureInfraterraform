@@ -1,72 +1,52 @@
 trigger:
-- main  # Adjust to your branch name
+- main
 
 pool:
-  name: 'azuredevopspool'  # Self-hosted agent
+  name: 'Azuredevopspool'  # Ensure this is your self-hosted Windows agent pool
 
-variables:
-  backendStorageAccount: 'yashstorage98764567'
-  backendContainer: 'terraformstate'
-  backendResourceGroup: 'NetworkWatcherRG'
+steps:
+- script: |
+    curl -LO https://releases.hashicorp.com/terraform/1.1.0/terraform_1.1.0_windows_amd64.zip
+    unzip terraform_1.1.0_windows_amd64.zip
+    move terraform.exe C:\Terraform
+    setx PATH "%PATH%;C:\Terraform"
+  displayName: 'Install Terraform'
 
-stages:
-- stage: Terraform_Install
-  displayName: "Install Terraform"
-  jobs:
-  - job: Install
-    steps:
-    - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
-      inputs:
-        terraformVersion: 'latest'
+- script: |
+    terraform --version
+  displayName: 'Verify Terraform Version'
 
-- stage: Terraform_Init
-  displayName: "Initialize Terraform"
-  jobs:
-  - job: Init
-    steps:
-    - task: TerraformCLI@2
-      inputs:
-        command: 'init'
-        backendType: 'azurerm'
-        backendServiceArm: 'azureterraform'  # Make sure this service connection exists
-        backendAzureRmResourceGroupName: '$(backendResourceGroup)'
-        backendAzureRmStorageAccountName: '$(backendStorageAccount)'
-        backendAzureRmContainerName: '$(backendContainer)'
-        backendAzureRmKey: 'terraform.tfstate'
+- task: AzureCLI@2
+  displayName: 'Terraform Init'
+  inputs:
+    azureSubscription: 'azureterraform'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      terraform init
 
-- stage: Terraform_Fmt
-  displayName: "Format Terraform Code"
-  jobs:
-  - job: Fmt
-    steps:
-    - task: TerraformCLI@2
-      inputs:
-        command: 'fmt'
+- script: |
+    terraform fmt -check -diff
+  displayName: 'Terraform Format Check'
 
-- stage: Terraform_Validate
-  displayName: "Validate Terraform Configuration"
-  jobs:
-  - job: Validate
-    steps:
-    - task: TerraformCLI@2
-      inputs:
-        command: 'validate'
+- script: |
+    terraform validate
+  displayName: 'Terraform Validate'
 
-- stage: Terraform_Plan
-  displayName: "Terraform Plan"
-  jobs:
-  - job: Plan
-    steps:
-    - task: TerraformCLI@2
-      inputs:
-        command: 'plan'
+- task: AzureCLI@2
+  displayName: 'Terraform Plan'
+  inputs:
+    azureSubscription: 'azureterraform'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      terraform plan -out=tfplan
 
-- stage: Terraform_Apply
-  displayName: "Terraform Apply"
-  jobs:
-  - job: Apply
-    steps:
-    - task: TerraformCLI@2
-      inputs:
-        command: 'apply'
-        commandOptions: '-auto-approve'
+- task: AzureCLI@2
+  displayName: 'Terraform Apply'
+  inputs:
+    azureSubscription: ''
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      terraform apply -auto-approve tfplan
