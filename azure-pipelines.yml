@@ -5,15 +5,15 @@ pool:
   name: 'Azuredevopspool'  # Ensure this is your self-hosted Windows agent pool
 
 steps:
-- script: |
-    curl -LO https://releases.hashicorp.com/terraform/1.1.0/terraform_1.1.0_windows_amd64.zip
-    tar -xzf terraform_1.1.0_windows_amd64.zip
-    move terraform.exe C:\Terraform
-    setx PATH "%PATH%;C:\Terraform"
+- powershell: |
+    Invoke-WebRequest -Uri "https://releases.hashicorp.com/terraform/1.1.0/terraform_1.1.0_windows_amd64.zip" -OutFile "terraform.zip"
+    Expand-Archive -Path "terraform.zip" -DestinationPath "C:\Terraform"
+    $env:PATH += ";C:\Terraform"
+    [System.Environment]::SetEnvironmentVariable("PATH", $env:PATH, [System.EnvironmentVariableTarget]::Machine)
   displayName: 'Install Terraform'
 
-- script: |
-    $env:PATH += ";C:\Users\yashr\OneDrive\Desktop\Agent\vsts-agent-win-x64-4.251.0\_work\_tool\terraform\1.10.5\x64"
+- powershell: |
+    $env:PATH += ";C:\Terraform"
     terraform --version
   displayName: 'Verify Terraform Version'
 
@@ -26,11 +26,11 @@ steps:
     inlineScript: |
       terraform init
 
-- script: |
+- powershell: |
     terraform fmt -check -diff
   displayName: 'Terraform Format Check'
 
-- script: |
+- powershell: |
     terraform validate
   displayName: 'Terraform Validate'
 
