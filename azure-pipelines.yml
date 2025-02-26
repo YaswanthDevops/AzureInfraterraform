@@ -2,7 +2,7 @@ trigger:
 - main  # Adjust to your branch name
 
 pool:
-  name: 'default'  # Self-hosted agent
+  name: 'azuredevopspool'  # Self-hosted agent
 
 variables:
   backendStorageAccount: 'yashstorage98764567'
