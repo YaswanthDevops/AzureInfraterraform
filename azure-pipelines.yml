@@ -2,7 +2,7 @@ trigger:
 - main  # Adjust to your branch name
 
 pool:
-  vmImage: 'ubuntu-latest'  # Use an Ubuntu agent
+  name: 'default'  # Use an Ubuntu agent
 
 variables:
   backendStorageAccount: 'yashstorage98764567'
