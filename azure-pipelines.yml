@@ -2,13 +2,14 @@ trigger:
 - main
 
 pool:
-  name: 'Azuredevopspool'  # Replace with the name of your self-hosted Windows agent pool
+  name: 'Azuredevopspool'  # Ensure this is your self-hosted Windows agent pool
 
 steps:
 - powershell: |
-    if (-Not (Test-Path -Path "C:\Terraform")) {
-        New-Item -ItemType Directory -Path "C:\Terraform"
+    if (Test-Path -Path "C:\Terraform") {
+        Remove-Item -Recurse -Force -Path "C:\Terraform"
     }
+    New-Item -ItemType Directory -Path "C:\Terraform"
     Invoke-WebRequest -Uri "https://releases.hashicorp.com/terraform/1.1.0/terraform_1.1.0_windows_amd64.zip" -OutFile "terraform.zip"
     Expand-Archive -Path "terraform.zip" -DestinationPath "C:\Terraform"
     $env:PATH += ";C:\Terraform"
@@ -53,4 +54,4 @@ steps:
     scriptType: 'ps'
     scriptLocation: 'inlineScript'
     inlineScript: |
-      terraform apply -auto-approve tfplan
+      terraform apply -auto-approve
