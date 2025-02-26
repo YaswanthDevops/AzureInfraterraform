@@ -2,7 +2,7 @@ trigger:
 - main  # Adjust to your branch name
 
 pool:
-  vmImage: 'windows-latest'  # Use an Ubuntu agent
+  name: 'default'  # Self-hosted agent
 
 variables:
   backendStorageAccount: 'yashstorage98764567'
@@ -28,12 +28,11 @@ stages:
       inputs:
         command: 'init'
         backendType: 'azurerm'
-        backendServiceArm: 'azureterraform'  # Replace with your service connection name
+        backendServiceArm: 'azureterraform'  # Make sure this service connection exists
         backendAzureRmResourceGroupName: '$(backendResourceGroup)'
         backendAzureRmStorageAccountName: '$(backendStorageAccount)'
         backendAzureRmContainerName: '$(backendContainer)'
         backendAzureRmKey: 'terraform.tfstate'
-        allowTelemetryCollection: true
 
 - stage: Terraform_Fmt
   displayName: "Format Terraform Code"
@@ -43,7 +42,6 @@ stages:
     - task: TerraformCLI@2
       inputs:
         command: 'fmt'
-        allowTelemetryCollection: true
 
 - stage: Terraform_Validate
   displayName: "Validate Terraform Configuration"
@@ -53,7 +51,6 @@ stages:
     - task: TerraformCLI@2
       inputs:
         command: 'validate'
-        allowTelemetryCollection: true
 
 - stage: Terraform_Plan
   displayName: "Terraform Plan"
@@ -63,7 +60,6 @@ stages:
     - task: TerraformCLI@2
       inputs:
         command: 'plan'
-        allowTelemetryCollection: true
 
 - stage: Terraform_Apply
   displayName: "Terraform Apply"
@@ -74,4 +70,3 @@ stages:
       inputs:
         command: 'apply'
         commandOptions: '-auto-approve'
-        allowTelemetryCollection: true
