@@ -24,8 +24,8 @@ steps:
 - task: AzureCLI@2
   displayName: 'Terraform Init'
   inputs:
-    azureSubscription: 'azureterraform'
-    scriptType: 'bash'
+    azureSubscription: 'Free Trial(b3c9519c-431e-4755-a70a-e44b4a68c99c)'
+    scriptType: 'ps'
     scriptLocation: 'inlineScript'
     inlineScript: 'terraform init'
     useGlobalConfig: true
