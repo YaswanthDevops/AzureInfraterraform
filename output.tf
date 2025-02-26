@@ -9,7 +9,7 @@ output "virtual_network_name" {
 }
 
 output "azurerm_subnet_name" {
-  description = "Subnet name"
+  description = "subnet name"
   value       = azurerm_subnet.azsubnet.name
 }
 
@@ -20,7 +20,7 @@ output "azurerm_network_interface" {
 
 output "azurerm_virtual_machine_name" {
   description = "vm name"
-  value       = azurerm_virtual_machine.my_vm.name
+  value       = azurerm_virtual_machine.myvm.name
 }
 
 

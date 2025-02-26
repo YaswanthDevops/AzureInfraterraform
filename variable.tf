@@ -1,4 +1,5 @@
 variable "prefix" {
+  type = string
   default = "tfvmex"
 }
 
@@ -14,15 +15,5 @@ variable "location" {
 
 variable "virtual_network_name" {
   description = "The name of Virtual Network"
-  type        = string
-}
-
-variable "subnet_name" {
-  description = "Subnet name"
-  type        = string
-}
-
-variable "virtual_machine_name" {
-  description = "Vm name"
   type        = string
 }
