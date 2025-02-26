@@ -1,0 +1,59 @@
+trigger:
+- main  # Adjust to your branch name
+
+pool:
+  vmImage: 'ubuntu-latest'  # Use an Ubuntu agent
+
+variables:
+  terraformVersion: '1.6.0'  # Adjust to your Terraform version
+  backendStorageAccount: 'yashstorage98764567'
+  backendContainer: 'terraformstate'
+  backendResourceGroup: 'NetworkWatcherRG'
+
+stages:
+- stage: Terraform_Deployment
+  displayName: "Terraform Deployment"
+  jobs:
+  - job: Terraform_Deploy
+    displayName: "Run Terraform Deployment"
+    steps:
+
+    # Step 1: Checkout Code
+    - task: Checkout@1
+
+    # Step 2: Install Terraform
+    - task: UseTerraform@1
+      displayName: "Install Terraform"
+      inputs:
+        terraformVersion: $(terraformVersion)
+
+    # Step 3: Terraform Init
+    - script: |
+        terraform init \
+          -backend-config="storage_account_name=$(backendStorageAccount)" \
+          -backend-config="container_name=$(backendContainer)" \
+          -backend-config="resource_group_name=$(backendResourceGroup)"
+      displayName: "Terraform Init"
+
+    # Step 4: Terraform Validate
+    - script: |
+        terraform validate
+      displayName: "Terraform Validate"
+
+    # Step 5: Terraform Plan
+    - script: |
+        terraform plan -out=tfplan
+      displayName: "Terraform Plan"
+    
+    # Step 6: Manual Approval Before Apply (Optional)
+    - task: ManualValidation@0
+      displayName: "Manual Approval Before Apply"
+      inputs:
+        notifyUsers: "you@example.com"
+        instructions: "Review the Terraform Plan before applying changes."
+        timeoutInMinutes: 30  # Timeout for approval
+
+    # Step 7: Terraform Apply (Only after approval)
+    - script: |
+        terraform apply -auto-approve tfplan
+      displayName: "Terraform Apply"
