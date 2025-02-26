@@ -5,55 +5,73 @@ pool:
   vmImage: 'ubuntu-latest'  # Use an Ubuntu agent
 
 variables:
-  terraformVersion: '1.6.0'  # Adjust to your Terraform version
   backendStorageAccount: 'yashstorage98764567'
   backendContainer: 'terraformstate'
   backendResourceGroup: 'NetworkWatcherRG'
 
 stages:
-- stage: Terraform_Deployment
-  displayName: "Terraform Deployment"
+- stage: Terraform_Install
+  displayName: "Install Terraform"
   jobs:
-  - job: Terraform_Deploy
-    displayName: "Run Terraform Deployment"
+  - job: Install
     steps:
-
-    # Step 1: Checkout Code
-    - task: Checkout@1
-
-    # Step 2: Install Terraform
-    - task: UseTerraform@1
-      displayName: "Install Terraform"
+    - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
       inputs:
-        terraformVersion: $(terraformVersion)
+        terraformVersion: 'latest'
 
-    # Step 3: Terraform Init
-    - script: |
-        terraform init \
-          -backend-config="storage_account_name=$(backendStorageAccount)" \
-          -backend-config="container_name=$(backendContainer)" \
-          -backend-config="resource_group_name=$(backendResourceGroup)"
-      displayName: "Terraform Init"
-
-    # Step 4: Terraform Validate
-    - script: |
-        terraform validate
-      displayName: "Terraform Validate"
-
-    # Step 5: Terraform Plan
-    - script: |
-        terraform plan -out=tfplan
-      displayName: "Terraform Plan"
-    
-    # Step 6: Manual Approval Before Apply (Optional)
-    - task: ManualValidation@0
-      displayName: "Manual Approval Before Apply"
+- stage: Terraform_Init
+  displayName: "Initialize Terraform"
+  jobs:
+  - job: Init
+    steps:
+    - task: TerraformCLI@2
       inputs:
-        notifyUsers: "you@example.com"
-        instructions: "Review the Terraform Plan before applying changes."
-        timeoutInMinutes: 30  # Timeout for approval
+        command: 'init'
+        backendType: 'azurerm'
+        backendServiceArm: 'azureterraform'  # Replace with your service connection name
+        backendAzureRmResourceGroupName: '$(backendResourceGroup)'
+        backendAzureRmStorageAccountName: '$(backendStorageAccount)'
+        backendAzureRmContainerName: '$(backendContainer)'
+        backendAzureRmKey: 'terraform.tfstate'
+        allowTelemetryCollection: true
 
-    # Step 7: Terraform Apply (Only after approval)
-    - script: |
-        terraform apply -auto-approve tfplan
-      displayName: "Terraform Apply"
+- stage: Terraform_Fmt
+  displayName: "Format Terraform Code"
+  jobs:
+  - job: Fmt
+    steps:
+    - task: TerraformCLI@2
+      inputs:
+        command: 'fmt'
+        allowTelemetryCollection: true
+
+- stage: Terraform_Validate
+  displayName: "Validate Terraform Configuration"
+  jobs:
+  - job: Validate
+    steps:
+    - task: TerraformCLI@2
+      inputs:
+        command: 'validate'
+        allowTelemetryCollection: true
+
+- stage: Terraform_Plan
+  displayName: "Terraform Plan"
+  jobs:
+  - job: Plan
+    steps:
+    - task: TerraformCLI@2
+      inputs:
+        command: 'plan'
+        allowTelemetryCollection: true
+
+- stage: Terraform_Apply
+  displayName: "Terraform Apply"
+  jobs:
+  - job: Apply
+    steps:
+    - task: TerraformCLI@2
+      inputs:
+        command: 'apply'
+        commandOptions: '-auto-approve'
+        allowTelemetryCollection: true
