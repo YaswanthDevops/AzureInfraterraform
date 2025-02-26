@@ -21,16 +21,6 @@ steps:
     terraform --version
   displayName: 'Verify Terraform Version'
 
-- powershell: |
-    if (-Not (Get-Command az -ErrorAction SilentlyContinue)) {
-        Invoke-WebRequest -Uri "https://aka.ms/installazurecliwindows" -OutFile "AzureCLI.msi"
-        Start-Process msiexec.exe -ArgumentList '/I AzureCLI.msi /quiet /norestart' -Wait
-        $env:PATH += ";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
-        [System.Environment]::SetEnvironmentVariable("PATH", $env:PATH, [System.EnvironmentVariableTarget]::Machine)
-    }
-    az --version
-  displayName: 'Install and Verify Azure CLI'
-
 - task: AzureCLI@2
   displayName: 'Terraform Init'
   inputs:
