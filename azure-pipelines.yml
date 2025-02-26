@@ -7,7 +7,7 @@ pool:
 steps:
 - powershell: |
     Invoke-WebRequest -Uri "https://releases.hashicorp.com/terraform/1.1.0/terraform_1.1.0_windows_amd64.zip" -OutFile "terraform.zip"
-    Expand-Archive -Path "terraform.zip" -DestinationPath "C:\Terraform"
+    Expand-Archive -Path "terraform.zip" -DestinationPath "C:\Terraform" -Force
     $env:PATH += ";C:\Terraform"
     [System.Environment]::SetEnvironmentVariable("PATH", $env:PATH, [System.EnvironmentVariableTarget]::Machine)
   displayName: 'Install Terraform'
