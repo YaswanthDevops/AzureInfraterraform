@@ -22,11 +22,10 @@ steps:
 - task: AzureCLI@2
   displayName: 'Terraform Init'
   inputs:
-    azureSubscription: 'azureterraform'
+    azureSubscription: 'testcon'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: 'terraform init'
-    useGlobalConfig: true
 
 - script: |
     terraform fmt -check -diff
@@ -39,17 +38,15 @@ steps:
 - task: AzureCLI@2
   displayName: 'Terraform Plan'
   inputs:
-    azureSubscription: 'azureterraform'
+    azureSubscription: 'testcon'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: 'terraform plan -out=tfplan'
-    useGlobalConfig: true
 
 - task: AzureCLI@2
   displayName: 'Terraform Apply'
   inputs:
-    azureSubscription: 'azureterraform'
+    azureSubscription: 'testcon'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: 'terraform apply -auto-approve tfplan'
-    useGlobalConfig: true
