@@ -2,7 +2,7 @@ trigger:
   - main
 
 pool:
-  vmImage: 'Azuredevopspool'
+  name: 'Azuredevopspool'
 
 variables:
   terraformVersion: '1.6.0'
