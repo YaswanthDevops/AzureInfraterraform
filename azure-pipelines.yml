@@ -29,9 +29,12 @@ stages:
       inputs:
         provider: 'azurerm'
         command: 'init'
-        workingDirectory: $(workingDirectory)
-        backendType: 'azurerm'
-        environmentServiceNameAzureRM: $(serviceConnection)
+        workingDirectory: '$(workingDirectory)'
+        backendServiceArm: 'AzureDevOps-Terraform'
+        backendAzureRmResourceGroupName: 'NetworkWatcherRG'
+        backendAzureRmStorageAccountName: 'yashstorage987654321'
+        backendAzureRmContainerName: 'yashbackendcontainer7654'
+        backendAzureRmKey: 'tf/terraform.tfstate'
 
     # Validate Terraform
     - task: TerraformTaskV4@4
