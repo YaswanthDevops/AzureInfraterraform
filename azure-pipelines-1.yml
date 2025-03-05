@@ -7,7 +7,6 @@ pool:
 variables:
   terraformVersion: '1.5.7'
   workingDirectory: 'terraform'
-  serviceConnection: 'azureterraform'
 
 stages:
   - stage: Terraform_Deploy
@@ -32,8 +31,9 @@ stages:
               command: 'init'
               workingDirectory: '$(workingDirectory)'
               backendType: 'azurerm'
-              backendServiceArm: $(serviceConnection)
+              backendServiceArm: 'azureterraform'
               ensureBackend: true
+              allowTelemetryCollection: true
 
           # Terraform Plan
           - task: TerraformCLI@2
@@ -41,7 +41,8 @@ stages:
             inputs:
               command: 'plan'
               workingDirectory: '$(workingDirectory)'
-              environmentServiceName: $(serviceConnection)
+              environmentServiceName: 'azureterraform'
+              allowTelemetryCollection: true
 
           # Terraform Apply
           - task: TerraformCLI@2
@@ -49,5 +50,6 @@ stages:
             inputs:
               command: 'apply'
               workingDirectory: '$(workingDirectory)'
-              environmentServiceName: $(serviceConnection)
+              environmentServiceName: 'azureterraform'
               commandOptions: '-auto-approve'
+              allowTelemetryCollection: true
