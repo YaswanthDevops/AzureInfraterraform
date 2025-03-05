@@ -23,6 +23,13 @@ stages:
               command: 'init'
               backendType: 'azurerm'
               backendServiceArm: 'testconnection'
+              backendAzureRmTenantId: 'b2a9a866-373b-445f-b6fc-abb14327f9dd'
+              backendAzureRmSubscriptionId: 'b3c9519c-431e-4755-a70a-e44b4a68c99c'
+              backendAzureRmResourceGroupName: 'NetworkWatcherRG'
+              backendAzureRmStorageAccountName: 'yashstorage987654321'
+              backendAzureRmContainerName: 'yashbackendcontainer7654'
+              backendAzureRmKey: 'terraform.tfstate'
+              allowTelemetryCollection: true
 
           - task: TerraformCLI@2
             displayName: "Terraform Plan"
