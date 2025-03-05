@@ -2,67 +2,60 @@ trigger:
 - main
 
 pool:
-  name: 'Azuredevopspool'  # Ensure this is your self-hosted Windows agent pool
+  name: 'Azuredevopspool'  # Ensure this is your self-hosted Linux agent pool
 
 steps:
-- powershell: |
-    if (Test-Path -Path "C:\Terraform") {
-        Remove-Item -Recurse -Force -Path "C:\Terraform"
-    }
-    New-Item -ItemType Directory -Path "C:\Terraform"
-    Invoke-WebRequest -Uri "https://releases.hashicorp.com/terraform/1.1.0/terraform_1.1.0_windows_amd64.zip" -OutFile "terraform.zip"
-    Expand-Archive -Path "terraform.zip" -DestinationPath "C:\Terraform"
-    $env:PATH += ";C:\Terraform"
-    [System.Environment]::SetEnvironmentVariable("PATH", $env:PATH, [System.EnvironmentVariableTarget]::Machine)
+- script: |
+    if [ -d "/home/Terraform" ]; then
+        rm -rf /home/Terraform
+    fi
+    mkdir -p /home/Terraform
+    curl -LO "https://releases.hashicorp.com/terraform/1.1.0/terraform_1.1.0_linux_amd64.zip"
+    unzip terraform_1.1.0_linux_amd64.zip -d /home/Terraform
+    echo "##vso[task.setvariable variable=PATH]$PATH:/home/Terraform"
   displayName: 'Install Terraform'
 
-- powershell: |
-    $env:PATH += ";C:\Terraform"
+- script: |
     terraform --version
   displayName: 'Verify Terraform Version'
 
-- powershell: |
-    if (-Not (Get-Command az -ErrorAction SilentlyContinue)) {
-        Invoke-WebRequest -Uri "https://aka.ms/installazurecliwindows" -OutFile "AzureCLI.msi"
-        Start-Process msiexec.exe -ArgumentList '/I AzureCLI.msi /quiet /norestart' -Wait
-        $env:PATH += ";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
-        [System.Environment]::SetEnvironmentVariable("PATH", $env:PATH, [System.EnvironmentVariableTarget]::Machine)
-    }
-    [Environment]::SetEnvironmentVariable("PATH", [Environment]::GetEnvironmentVariable("PATH", [EnvironmentVariableTarget]::Machine) + ";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin", [EnvironmentVariableTarget]::Process)
+- script: |
+    if ! command -v az &> /dev/null; then
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+    fi
     az --version
   displayName: 'Install and Verify Azure CLI'
 
-- task: AzureCLI@2
+- task: TerraformTaskV2
   displayName: 'Terraform Init'
   inputs:
-    azureSubscription: 'azureterraform'
-    scriptType: 'ps'
-    scriptLocation: 'inlineScript'
-    inlineScript: |
-      terraform init
+    provider: 'azurerm'
+    command: 'init'
+    workingDirectory: '$(Build.SourcesDirectory)'
+    backendServiceArm: 'azureterraform'  # Ensure this service connection exists
 
-- powershell: |
+- script: |
     terraform fmt -check -diff
   displayName: 'Terraform Format Check'
 
-- powershell: |
+- script: |
     terraform validate
   displayName: 'Terraform Validate'
 
-- task: AzureCLI@2
+- task: TerraformTaskV2
   displayName: 'Terraform Plan'
   inputs:
-    azureSubscription: 'azureterraform'
-    scriptType: 'ps'
-    scriptLocation: 'inlineScript'
-    inlineScript: |
-      terraform plan -out=tfplan
+    provider: 'azurerm'
+    command: 'plan'
+    workingDirectory: '$(Build.SourcesDirectory)'
+    backendServiceArm: 'azureterraform'
+    commandOptions: '-out=tfplan'
 
-- task: AzureCLI@2
+- task: TerraformTaskV2
   displayName: 'Terraform Apply'
   inputs:
-    azureSubscription: 'azureterraform'
-    scriptType: 'ps'
-    scriptLocation: 'inlineScript'
-    inlineScript: |
-      terraform apply -auto-approve tfplan
+    provider: 'azurerm'
+    command: 'apply'
+    workingDirectory: '$(Build.SourcesDirectory)'
+    backendServiceArm: 'azureterraform'
+    commandOptions: '-auto-approve tfplan'
