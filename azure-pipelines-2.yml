@@ -1,0 +1,54 @@
+trigger:
+- main  # Triggers pipeline on changes to main branch
+
+pool:
+  name:   # Replace with your self-hosted agent pool name
+
+variables:
+  ARM_USE_MSI: true
+  ARM_SUBSCRIPTION_ID: "b3c9519c-431e-4755-a70a-e44b4a68c99c"
+  ARM_TENANT_ID: "b2a9a866-373b-445f-b6fc-abb14327f9dd"
+
+stages:
+- stage: Terraform_Deploy
+  displayName: "Deploy Infrastructure with Terraform"
+  jobs:
+  - job: Terraform_Deploy
+    displayName: "Run Terraform on Self-Hosted Linux Agent"
+    steps:
+    
+    - task: Bash@3
+      displayName: "Terraform Init"
+      inputs:
+        targetType: "inline"
+        script: |
+          export ARM_USE_MSI=${ARM_USE_MSI}
+          export ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}
+          export ARM_TENANT_ID=${ARM_TENANT_ID}
+
+          terraform init \
+            -backend-config="storage_account_name=yashstorage987654321" \
+            -backend-config="container_name=yashbackendcontainer7654" \
+            -backend-config="key=terraform.tfstate" \
+            -backend-config="use_azuread_auth=true"
+
+    - task: Bash@3
+      displayName: "Terraform Validate"
+      inputs:
+        targetType: "inline"
+        script: |
+          terraform validate
+
+    - task: Bash@3
+      displayName: "Terraform Plan"
+      inputs:
+        targetType: "inline"
+        script: |
+          terraform plan -out=tfplan
+
+    - task: Bash@3
+      displayName: "Terraform Apply"
+      inputs:
+        targetType: "inline"
+        script: |
+          terraform apply -auto-approve tfplan
