@@ -1,13 +1,13 @@
 trigger:
-  - main  # Runs when code is pushed to 'main' branch
+  - main
 
 pool:
-  vmImage: 'Azuredevopspool'  # Use a Linux agent
+  vmImage: 'Azuredevopspool'
 
 variables:
-  terraformVersion: '1.6.0'  # Set the Terraform version
-  serviceConnection: 'AzureDevOps-Terraform'  # Name of the service connection
-  workingDirectory: 'terraform'  # Terraform directory path
+  terraformVersion: '1.6.0'
+  serviceConnection: 'AzureDevOps-Terraform'
+  workingDirectory: 'terraform'
 
 stages:
 - stage: Terraform_Build
@@ -17,8 +17,8 @@ stages:
     displayName: "Terraform Initialization and Validation"
     steps:
 
-    # Install Terraform
-    - task: TerraformInstaller@1
+    # Install Terraform (Use correct extension)
+    - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
       displayName: "Install Terraform"
       inputs:
         terraformVersion: $(terraformVersion)
@@ -33,7 +33,7 @@ stages:
         backendType: 'azurerm'
         environmentServiceNameAzureRM: $(serviceConnection)
 
-    # Validate Terraform Code
+    # Validate Terraform
     - task: TerraformTaskV4@4
       displayName: "Terraform Validate"
       inputs:
@@ -41,7 +41,7 @@ stages:
         command: 'validate'
         workingDirectory: $(workingDirectory)
 
-    # Terraform Plan (Preview Changes)
+    # Terraform Plan
     - task: TerraformTaskV4@4
       displayName: "Terraform Plan"
       inputs:
@@ -71,8 +71,8 @@ stages:
         deploy:
           steps:
 
-          # Install Terraform
-          - task: TerraformInstaller@1
+          # Install Terraform (Use correct extension)
+          - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName: "Install Terraform"
             inputs:
               terraformVersion: $(terraformVersion)
@@ -90,6 +90,6 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'apply'
-              workingDirectory: $(workingDirectory)
-              environmentServiceNameAzureRM: $(serviceConnection)
+              workingDirectory: '$(workingDirectory)'
               commandOptions: '$(Pipeline.Workspace)/terraform_plan/tfplan'
+              environmentServiceNameAzureRM: '$(serviceConnection)'
