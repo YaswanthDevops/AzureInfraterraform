@@ -1,98 +1,38 @@
 trigger:
-  - main
+  - main  # Runs when code is pushed to the main branch
 
 pool:
-  name: 'Azuredevopspool'
-
-variables:
-  terraformVersion: '1.6.0'
-  serviceConnection: 'AzureDevOps-Terraform'
-  workingDirectory: 'terraform'
+  name: 'Azuredevopspool'  # Use your self-hosted agent pool
 
 stages:
-- stage: Terraform_Build
-  displayName: "Terraform Build and Validation"
-  jobs:
-  - job: Terraform_Build_Job
-    displayName: "Terraform Initialization and Validation"
-    steps:
-
-    # Install Terraform (Use correct extension)
-    - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
-      displayName: "Install Terraform"
-      inputs:
-        terraformVersion: $(terraformVersion)
-
-    # Initialize Terraform
-    - task: TerraformTaskV4@4
-      displayName: "Terraform Init"
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        workingDirectory: '$(workingDirectory)'
-        backendServiceArm: 'AzureDevOps-Terraform'
-        backendAzureRmResourceGroupName: 'NetworkWatcherRG'
-        backendAzureRmStorageAccountName: 'yashstorage987654321'
-        backendAzureRmContainerName: 'yashbackendcontainer7654'
-        backendAzureRmKey: 'tf/terraform.tfstate'
-
-    # Validate Terraform
-    - task: TerraformTaskV4@4
-      displayName: "Terraform Validate"
-      inputs:
-        provider: 'azurerm'
-        command: 'validate'
-        workingDirectory: $(workingDirectory)
-
-    # Terraform Plan
-    - task: TerraformTaskV4@4
-      displayName: "Terraform Plan"
-      inputs:
-        provider: 'azurerm'
-        command: 'plan'
-        workingDirectory: $(workingDirectory)
-        environmentServiceNameAzureRM: $(serviceConnection)
-        commandOptions: '-out=tfplan'
-
-    # Publish Terraform Plan Artifact
-    - task: PublishBuildArtifacts@1
-      displayName: "Publish Terraform Plan"
-      inputs:
-        artifactName: 'terraform_plan'
-        pathToPublish: '$(workingDirectory)/tfplan'
-
-- stage: Terraform_Deploy
-  displayName: "Terraform Apply"
-  dependsOn: Terraform_Build
-  condition: succeeded()
-  jobs:
-  - deployment: Terraform_Apply_Job
-    displayName: "Terraform Apply to Azure"
-    environment: 'Production'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-
-          # Install Terraform (Use correct extension)
+  - stage: DeployInfra
+    displayName: "Deploy Azure Infrastructure"
+    jobs:
+      - job: Terraform_Deployment
+        displayName: "Terraform Deployment"
+        steps:
+        
           - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName: "Install Terraform"
             inputs:
-              terraformVersion: $(terraformVersion)
+              terraformVersion: 'latest'
 
-          # Download Terraform Plan Artifact
-          - task: DownloadBuildArtifacts@0
-            displayName: "Download Terraform Plan"
+          - task: TerraformCLI@2
+            displayName: "Terraform Init"
             inputs:
-              artifactName: 'terraform_plan'
-              downloadPath: $(Pipeline.Workspace)
+              command: 'init'
+              backendType: 'azurerm'
+              backendServiceArm: 'testconnection'
 
-          # Apply Terraform Changes
-          - task: TerraformTaskV4@4
+          - task: TerraformCLI@2
+            displayName: "Terraform Plan"
+            inputs:
+              command: 'plan'
+              backendServiceArm: 'testconnection'
+
+          - task: TerraformCLI@2
             displayName: "Terraform Apply"
             inputs:
-              provider: 'azurerm'
               command: 'apply'
-              workingDirectory: '$(workingDirectory)'
-              commandOptions: '$(Pipeline.Workspace)/terraform_plan/tfplan'
-              environmentServiceNameAzureRM: '$(serviceConnection)'
+              backendServiceArm: 'testconnection'
+              commandOptions: '-auto-approve'  # Automatically approve changes
