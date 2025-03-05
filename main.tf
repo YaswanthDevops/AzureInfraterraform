@@ -25,7 +25,7 @@ resource "azurerm_network_interface" "azurenic" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = azurerm_subnet.azsubnet.id
-    private_ip_address_allocation = "Dynamic"
+    private_ip_address_allocation = "Static"
   }
 }
 
