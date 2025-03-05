@@ -43,6 +43,7 @@ steps:
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: 'terraform plan -out=tfplan'
+    useGlobalConfig: true
 
 - task: AzureCLI@2
   displayName: 'Terraform Apply'
