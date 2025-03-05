@@ -43,3 +43,10 @@ stages:
               command: 'apply'
               backendServiceArm: 'testconnection'
               commandOptions: '-auto-approve'  # Automatically approve changes
+          
+          - task: TerraformCLI@2
+            displayName: "Terraform Destroy"
+            inputs:
+              command: 'destroy'
+              backendServiceArm: 'testconnection'
+              commandOptions: '-auto-approve'
