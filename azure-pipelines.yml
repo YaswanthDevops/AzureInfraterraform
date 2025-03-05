@@ -25,8 +25,8 @@ steps:
     azureSubscription: 'azureterraform'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
-    inlineScript: |
-      terraform init
+    inlineScript: 'terraform init'
+    useGlobalConfig: true
 
 - script: |
     terraform fmt -check -diff
@@ -42,8 +42,8 @@ steps:
     azureSubscription: 'azureterraform'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
-    inlineScript: |
-      terraform plan -out=tfplan
+    inlineScript: 'terraform plan -out=tfplan'
+    useGlobalConfig: true
 
 - task: AzureCLI@2
   displayName: 'Terraform Apply'
@@ -51,5 +51,5 @@ steps:
     azureSubscription: 'azureterraform'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
-    inlineScript: |
-      terraform apply -auto-approve tfplan
+    inlineScript: 'terraform apply -auto-approve tfplan'
+    useGlobalConfig: true
