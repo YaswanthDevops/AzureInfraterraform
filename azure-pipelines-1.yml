@@ -1,13 +1,13 @@
 trigger:
-  - main  # Trigger on changes to main branch (adjust as needed)
+  - main  
 
 pool:
-  name: 'Azuredevopspool'  # Specify your self-hosted agent pool name
+  name: 'Azuredevopspool'  
 
 variables:
-  terraformVersion: '1.5.7'  # Adjust Terraform version as needed
-  workingDirectory: 'terraform'  # Path to Terraform code
-  serviceConnection: 'azureterraform'  # Name of Azure DevOps service connection
+  terraformVersion: '1.5.7'
+  workingDirectory: 'terraform'
+  serviceConnection: 'azureterraform'
 
 stages:
   - stage: Terraform_Deploy
@@ -16,16 +16,16 @@ stages:
       - job: Terraform_Apply
         displayName: 'Run Terraform'
         steps:
-          # 📌 Checkout the repository
+          # Checkout code
           - task: Checkout@1
 
-          # 📌 Install Terraform
-          - task: TerraformInstaller@1
+          # Install Terraform (Choose the correct task reference based on your installed extension)
+          - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName: 'Install Terraform'
             inputs:
               terraformVersion: $(terraformVersion)
 
-          # 📌 Initialize Terraform
+          # Initialize Terraform
           - task: TerraformCLI@2
             displayName: 'Terraform Init'
             inputs:
@@ -35,10 +35,19 @@ stages:
               backendServiceArm: $(serviceConnection)
               ensureBackend: true
 
-          # 📌 Terraform Plan
+          # Terraform Plan
           - task: TerraformCLI@2
             displayName: 'Terraform Plan'
             inputs:
               command: 'plan'
               workingDirectory: '$(workingDirectory)'
               environmentServiceName: $(serviceConnection)
+
+          # Terraform Apply
+          - task: TerraformCLI@2
+            displayName: 'Terraform Apply'
+            inputs:
+              command: 'apply'
+              workingDirectory: '$(workingDirectory)'
+              environmentServiceName: $(serviceConnection)
+              commandOptions: '-auto-approve'
