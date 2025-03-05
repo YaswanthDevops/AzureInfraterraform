@@ -42,12 +42,3 @@ stages:
               command: 'plan'
               workingDirectory: '$(workingDirectory)'
               environmentServiceName: $(serviceConnection)
-
-          # 📌 Terraform Apply
-          - task: TerraformCLI@2
-            displayName: 'Terraform Apply'
-            inputs:
-              command: 'apply'
-              workingDirectory: '$(workingDirectory)'
-              environmentServiceName: $(serviceConnection)
-              commandOptions: '-auto-approve'
