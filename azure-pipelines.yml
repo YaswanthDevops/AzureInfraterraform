@@ -2,7 +2,7 @@ trigger:
 - main
 
 pool:
-  name: 'Azuredevopspool'  # Ensure this is your self-hosted Linux agent pool
+  name: 'Azuredevopspool'  # Ensure this is your self-hosted agent
 
 steps:
 - script: |
@@ -19,20 +19,14 @@ steps:
     terraform --version
   displayName: 'Verify Terraform Version'
 
-- script: |
-    if ! command -v az &> /dev/null; then
-        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-    fi
-    az --version
-  displayName: 'Install and Verify Azure CLI'
-
-- task: TerraformTaskV2
+- task: AzureCLI@2
   displayName: 'Terraform Init'
   inputs:
-    provider: 'azurerm'
-    command: 'init'
-    workingDirectory: '$(Build.SourcesDirectory)'
-    backendServiceArm: 'azureterraform'  # Ensure this service connection exists
+    azureSubscription: 'azureterraform'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      terraform init
 
 - script: |
     terraform fmt -check -diff
@@ -42,20 +36,20 @@ steps:
     terraform validate
   displayName: 'Terraform Validate'
 
-- task: TerraformTaskV2
+- task: AzureCLI@2
   displayName: 'Terraform Plan'
   inputs:
-    provider: 'azurerm'
-    command: 'plan'
-    workingDirectory: '$(Build.SourcesDirectory)'
-    backendServiceArm: 'azureterraform'
-    commandOptions: '-out=tfplan'
+    azureSubscription: 'azureterraform'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      terraform plan -out=tfplan
 
-- task: TerraformTaskV2
+- task: AzureCLI@2
   displayName: 'Terraform Apply'
   inputs:
-    provider: 'azurerm'
-    command: 'apply'
-    workingDirectory: '$(Build.SourcesDirectory)'
-    backendServiceArm: 'azureterraform'
-    commandOptions: '-auto-approve tfplan'
+    azureSubscription: 'azureterraform'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      terraform apply -auto-approve tfplan
