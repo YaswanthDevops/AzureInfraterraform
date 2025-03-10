@@ -38,7 +38,7 @@ resource "azurerm_virtual_machine" "myvm" {
 
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
-  delete_os_disk_on_termination = true
+  delete_os_disk_on_termination = false
 
   # Uncomment this line to delete the data disks automatically when deleting the VM
   delete_data_disks_on_termination = true
