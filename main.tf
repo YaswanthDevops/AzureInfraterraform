@@ -25,7 +25,7 @@ resource "azurerm_network_interface" "azurenic" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = azurerm_subnet.azsubnet.id
-    private_ip_address_allocation = "Static"
+    private_ip_address_allocation = "dynamic"
   }
 }
 
@@ -35,6 +35,7 @@ resource "azurerm_virtual_machine" "myvm" {
   resource_group_name   = azurerm_resource_group.TerraformRG.name
   network_interface_ids = [azurerm_network_interface.azurenic.id]
   vm_size               = "Standard_DS1_v2"
+
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
   delete_os_disk_on_termination = true
